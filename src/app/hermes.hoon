@@ -18,8 +18,7 @@
     $:  [%0 =tokens =status]
     ==
 ::
-+$  url  @t
-::
++$  url     @t
 +$  tokens  (map @p tape)
 +$  status  (map @p ?(%.y %.n))
 ::
@@ -32,9 +31,9 @@
 ^-  agent:gall
 =<
 |_  =bowl:gall
-+*  this  .
++*  this      .
     default   ~(. (default-agent this %|) bowl)
-    main     ~(. +> bowl)
+    main      ~(. +> bowl)
 ::
 ++  on-init
   ^-  (quip card _this)
@@ -53,7 +52,7 @@
   =/  prev  !<(versioned-state old-state)
   ?-  -.prev
     %0
-    ~&  >>>  '%0'
+    ~&  >  '%hermes version %0'
     `this(state prev)
   ==
 ++  on-poke
@@ -92,15 +91,14 @@
         ::   store and if a DM comes from a registered @p and has the same auth
         ::   code as stored, then switch the "auth status" value to true.
         ::
-        ~&  >>  "~initiateAuth"
-        ::  state is modified before checks authorisation so think thru if vuln
-        ::  I think not b/c default state is unauthorized
+        ~&  >  "%hermes request hit /~initiateAuth"
         =^  cards  state  (produce-token:main inbound-request)
         =^  cards  state  (subscribe-dms:main inbound-request)
         :_  state
+        ^-  (list card)
         %+  weld  cards
           %+  give-simple-payload:app:server  id
-          %+  require-authorization:app:server  inbound-request
+          %+  skip-authorization:main  inbound-request
           handle-auth-request:main
       ?>  =(url.request.inbound-request '/~checkAuth')
         ::
@@ -120,14 +118,13 @@
         ::   authorization request to a website/service, making it more
         ::   secure.
         ::
-        ~&  >>  "~checkAuth"
-        ::=^  cards  state  (check-dms:main inbound-request)
-        ::=^  cards  state  (check-auth:main inbound-request)
-        :_  state
-        %+  give-simple-payload:app:server  id
-        %+  require-authorization:app:server  inbound-request
-        ::%+  receive-token
-        handle-auth-check:main
+        ~&  >  "%hermes request hit /~checkAuth"
+        =^  cards  state
+          :_  state
+          %+  give-simple-payload:app:server  id
+          %+  skip-authorization:main  inbound-request
+          handle-auth-check:main
+        (clear-auth:main inbound-request)
     ==
   [cards this]
   ::
@@ -188,55 +185,64 @@
 ++  on-agent
   |=  [=path =sign:agent:gall]
   ^-  (quip card _this)
-  ?+    -.sign  (on-agent:default path sign)
-      %kick
-    ~&  >>  "kicked from subscription {<path>}"
-    ~&  >>  "attempting to resubscribe"
-    ?~  path  ~|("empty wire, can't resubscribe. this shouldn't happen" `this)
-    ?>  ?=([%request-library @ @ ~] path)
-    `this
+  =^  cards  state
+  ?-    -.sign  ::[- state]:(on-agent:default path sign)
+      %poke-ack
+    [- state]:(on-agent:default path sign)
   ::
       %watch-ack
     ?~  p.sign
       ~&  >   "subscribed on wire {<path>} successfully"
-      `this
+      [- state]:(on-agent:default path sign)
     ~&  >>>  "subscribe on wire {<path>} failed"
-    `this
+    [- state]:(on-agent:default path sign)
+  ::
+      %kick
+    ~&  >>  "kicked from subscription {<path>}"
+    ~&  >>  "attempting to resubscribe"
+    ?~  path
+      ~|  "empty wire, can't resubscribe. this shouldn't happen"
+      [- state]:(on-agent:default path sign)
+    ?>  ?=([%request-library @ @ ~] path)
+    :_  state
+      ~[[%pass /graph-store %agent [our.bowl %graph-store] %watch /updates]]
   ::
       %fact
-    ::=^  cards  state
-      ::?+    p.cage.sign  `state
-        ::  %graph-update-2
-        =+  !<(=update:graph-store q.cage.sign)
-        =/  payload=update:graph-store  !<(update:graph-store q.cage.sign)
-        ~&  >  payload
-        =/  payload-array  q:+.payload
-        ~&  >>  +>.payload-array
-        =/  payload-text  +>.payload-array
-        ::  Check author of DM
-        =/  author  ->->-.payload-text
-        ~&  >  author
-        ::  Check token of DM
-        =/  in-token  ->->+>+<-.payload-text
-        ~&  >  in-token
-        ::  If they match, then update the authorization
-        ::?:  =(((~got by tokens.state) author) in-token)
-        ::  =.  status.state  (~(gas by status.state) ~[[target %.n]])
-        ::  ~&  >  'it\'s a match!'
-        ::  ~[[%give %fact ~[/tokens] [%atom !>(tokens.state)]]]
-        ::~[[%give %fact ~[/tokens] [%atom !>(tokens.state)]]]
-        ::~&  >  (scry-for:main update:graph-store /graph/(scot %p our.bowl)/dm-inbox)
-        ::~&  >  (scry-for:main update:graph-store /keys)
-        ::  check if node is resource=[entity=~wes name=%dm-inbox]
-        ::=/  payload  q:+>+.sign
-        ::~&  >>  +>+<+<+>+>-<+:payload
-        ::=/  st  (req-parser-dm payload)
-        ::~&  >>>  st
-    ::    [cards this]
-      ::==
-    ::[cards this]
-    `this
+    ?+    p.cage.sign  ~|([dap.bowl %bad-sub-mark wire p.cage.sign] !!)
+        %graph-update-2
+      ^-  (quip card _state)
+      =+  !<(=update:graph-store q.cage.sign)
+      =/  payload=update:graph-store  !<(update:graph-store q.cage.sign)
+      ::  Is this a DM?  If not, bail.
+      =/  is-dm  =(+>->:payload %dm-inbox)
+      ?.  is-dm
+        ~&  >>  "%hermes:  not a DM"
+        [- state]:(on-agent:default path sign)
+      =/  payload-array  q:+.payload
+      =/  payload-text  +>.payload-array
+      ::  Check author of DM
+      =/  author  ->->-.payload-text
+      ?>  ?=(@p author)  :: resolve fork in resolution
+      ::  Has this token been requested?  If not, bail.
+      =/  is-requested  %.y
+      ?.  is-requested
+        ~&  >>  "%hermes:  ship not requested"
+        [- state]:(on-agent:default path sign)
+      ::  Check token of DM
+      ~&  >  "%hermes:  attempting to extract token from DM"
+      =/  trial-token-payload  ->->+>+<-.payload-text
+      ?>  ?=([%text @t] trial-token-payload)
+      =/  trial-token  `@t`text:+.trial-token-payload
+      ?.  =((crip (~(gut by tokens.state) author ~)) trial-token)
+        ~&  >>>  "%hermes:  incorrect token for {<author>}"
+        [~[[%give %fact ~[/status] [%atom !>(status.state)]]] state]
+      =.  status.state  (~(gas by status.state) ~[[author %.y]])
+      ~&  >  "%hermes:  status for {<author>} confirmed"
+      :_  state
+      ~[[%give %fact ~[/status] [%atom !>(status.state)]]]
     ==
+  ==
+  [cards this]
 ++  on-fail   on-fail:default
 --
 |_  =bowl:gall
@@ -272,8 +278,8 @@
   =/  token  (generate-token default-token)
   =.  tokens.state  (~(gas by tokens.state) ~[[target token]])
   =.  status.state  (~(gas by status.state) ~[[target %.n]])
-  ~&  >>>  (crip "tokens {<tokens.state>}")
-  ~&  >>>  (crip "status {<status.state>}")
+  ::~&  >>>  (crip "tokens {<tokens.state>}")
+  ::~&  >>>  (crip "status {<status.state>}")
   :_  state
   :~  [%give %fact ~[/tokens] [%atom !>(tokens.state)]]
       [%give %fact ~[/status] [%atom !>(status.state)]]
@@ -291,23 +297,9 @@
   ?~  ship  !!
   =/  target  u:+:`(unit @p)`(slaw %p +.ship)
   =/  token  (generate-token default-insecure-token)
-  ~&  >  "subscribing to dm-inbox"
   :_  state
   ~[[%pass /graph-store %agent [our.bowl %graph-store] %watch /updates]]
-  ::[%pass /my/wire %agent [our.bowl agent-name] %leave ~]
-:: checkAuth needs to delete token as well as revoke auth
-::  .^(noun %gx /=graph-store=/keys/noun)
-++  scry-for
-  |*  [=mold =path]
-  .^  mold
-    %gx
-    (scot %p our.bowl)
-    ::%graph
-    %graph-store
-    (scot %da now.bowl)
-    (snoc `^path`path %noun)
-  ==
-++  check-dms
+++  clear-auth
   |=  [req=inbound-request:eyre]
   ^-  (quip card _state)
   =/  payload  (de-json:html `@t`+511:req)
@@ -319,34 +311,13 @@
   =/  ship  (req-parser-ship +.target-payload)
   ?~  ship  !!
   =/  target  u:+:`(unit @p)`(slaw %p +.ship)
-  =/  token  (generate-token default-insecure-token)
-  =.  tokens.state  (~(gas by tokens.state) ~[[target token]])
-  =.  status.state  (~(gas by status.state) ~[[target %.n]])
-  ~&  >>>  (crip "tokens {<tokens.state>}")
-  ~&  >>>  (crip "status {<status.state>}")
+  =/  auth-status  (~(gut by status.state) target %.n)
+  ::  only clear the tokens if the status is %.y, else it's too soon
+  =.  tokens.state  ?:(auth-status (~(del by tokens.state) target) tokens.state)
+  =.  status.state  ?:(auth-status (~(del by status.state) target) status.state)
   :_  state
   :~  [%give %fact ~[/tokens] [%atom !>(tokens.state)]]
       [%give %fact ~[/status] [%atom !>(status.state)]]
-  ==
-
-++  send-token
-  |=  target=@p
-  ^-  (quip card _state)
-  :_  state
-  ~&  >  "sending to {<target>}"
-  ~[[%pass /poke-wire %agent [target %auth] %poke %noun !>([%receive-token (~(get by tokens.state) target)])]]
-++  handle-http-request  ::::::::::::::::: DELETEME ::::::::::::::::::::::::::::
-  |=  req=inbound-request:eyre
-  ^-  simple-payload:http
-  =,  enjs:format
-  =/  target  ~lex
-  =/  auth  (~(gut by status.state) target %.n)
-  %-  json-response:gen:server
-  %-  pairs
-  :~
-    [%source [%s (scot %p our.bowl)]]
-    [%target [%s (scot %p target)]]
-    [%status [%s ?:(%.n 'true' 'false')]]
   ==
 ++  req-parser-ot
   %-  ot:dejs-soft:format
@@ -356,10 +327,6 @@
 ++  req-parser-ship
   %-  ot:dejs-soft:format
   :~  [%ship so:dejs-soft:format]
-  ==
-++  req-parser-dm
-  %-  ot:dejs-soft:format
-  :~  [%text so:dejs-soft:format]
   ==
 ++  handle-auth-request
   |=  req=inbound-request:eyre
@@ -373,20 +340,18 @@
   =/  target-payload  (de-json:html +.st)
   =/  ship  (req-parser-ship +.target-payload)
   ?~  ship  !!
-  =/  target  +:`(unit @p)`(slaw %p +.ship)
+  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
   =/  auth  (~(gut by status.state) target %.n)
   =/  token  (~(got by tokens.state) target)
-  ~&  [%source [%s (scot %p our.bowl)]]
-  ~&  [%target [%s (scot %p target)]]
-  ~&  [%status [%s ?:(%.n 'true' 'false')]]
-  ~&  [%token [%s (crip token)]]
-  ::  somewhere in here update/subscribe/etc.
+  ::~&  [%source [%s (scot %p our.bowl)]]
+  ::~&  [%target [%s (scot %p target)]]
+  ::~&  [%status [%s ?:(%.n 'true' 'false')]]
+  ::~&  [%token [%s (crip token)]]
   %-  json-response:gen:server
   %-  pairs
   :~
     [%source [%s (scot %p our.bowl)]]
     [%target [%s (scot %p target)]]
-    ::[%status [%s ?:(%.n 'true' 'false')]]
     [%token [%s (crip token)]]
   ==
 ++  handle-auth-check
@@ -401,16 +366,24 @@
   =/  target-payload  (de-json:html +.st)
   =/  ship  (req-parser-ship +.target-payload)
   ?~  ship  !!
-  =/  target  +:`(unit @p)`(slaw %p +.ship)
-  =/  auth  (~(gut by status.state) target %.n)
+  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
+  =/  auth-status  (~(gut by status.state) target %.n)
   ~&  [%source [%s (scot %p our.bowl)]]
   ~&  [%target [%s (scot %p target)]]
-  ~&  [%status [%s ?:(%.n 'true' 'false')]]
+  ~&  [%status [%s ?:(auth-status 'true' 'false')]]
   %-  json-response:gen:server
   %-  pairs
   :~
     [%source [%s (scot %p our.bowl)]]
     [%target [%s (scot %p target)]]
-    [%status [%s ?:(%.n 'true' 'false')]]
+    [%status [%s ?:(auth-status 'true' 'false')]]
   ==
+++  skip-authorization
+  |=  $:  =inbound-request:eyre
+          handler=$-(inbound-request:eyre simple-payload:http)
+      ==
+  ^-  simple-payload:http
+  ~!  this
+  ~!  +:*handler
+  (handler inbound-request)
 --
