@@ -88,6 +88,4 @@ _This example assumes that the developer is a running a “website ship” `~zod
 
 ##  Issues
 
-1. If you DM a token from the wrong user ship, it will kick the subscription and the request must be initiated again.
-
-2. DMs on fakezods seem to be laggy which can make testing difficult.
+- DMs on fakezods seem to be laggy which can make testing difficult.
