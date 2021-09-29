@@ -16,7 +16,7 @@ When paired with Urbit Visor, this applications allows users to authenticate the
       ```sh
       curl --header "Content-Type: application/json" \
            --request PUT \
-           --data '{"ship":"zod","action":"poke","app":"hermes","json":"{\"ship\":\"~nec\"}","mark":"noun"}' \
+           --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
            http://localhost:8080/~initiateAuth
       ```
 
@@ -28,7 +28,7 @@ When paired with Urbit Visor, this applications allows users to authenticate the
       ```sh
       curl --header "Content-Type: application/json" \
            --request PUT \
-           --data '{"ship":"zod","action":"poke","app":"hermes","json":"{\"ship\":\"~nec\"}","mark":"noun"}' \
+           --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
            http://localhost:8080/~checkAuth
       ```
 
@@ -41,51 +41,47 @@ As soon as a successful check has been made, `%hermes` clears the authorization 
 
 ##  Example Workflow
 
-_This example assumes that the developer is a running a “website ship” `~zod` and a “user ship” `~nec`._
+_This example assumes that the developer is a running a “website ship” `~sampel-talled` and a “user ship” `~sampel-palnet`.  (DMs do not work particularly well between fakezod galaxies.)_
 
-1. Start `%hermes` on website ship `~zod`.
-2. Request a token from website ship `~zod` for user ship `~nec`.
+1. Start `%hermes` on website ship `~sampel-talled`.
+2. Request a token from website ship `~sampel-talled` for user ship `~sampel-palnet`.
 
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"zod","action":"poke","app":"hermes","json":"{\"ship\":\"~nec\"}","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"{\"ship\":\"~sampel-palnet\"}","mark":"noun"}' \
          http://localhost:8080/~initiateAuth
     ```
 
-3. Check the authentication status of `~nec` from `~zod` and confirm that the user ship is not authorized yet.
+3. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship is not authorized yet.
 
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"zod","action":"poke","app":"hermes","json":"{\"ship\":\"~nec\"}","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"{\"ship\":\"~sampel-palnet\"}","mark":"noun"}' \
          http://localhost:8080/~checkAuth
     ```
 
-3. Emit a DM from `~nec` to `~zod` at the Dojo prompt.  (This should contain the token returned in the first step.)
+3. Emit a DM from `~sampel-palnet` to `~sampel-talled` at the Dojo prompt.  (This should contain the token returned in the first step.)
 
     ```sh
-    :dm-hook|dm ~zod ~[[%text 'RENV~jjr1W-ICCIlBr9ZVIxg']]
+    :dm-hook|dm ~sampel-talled ~[[%text 'RENV~jjr1W-ICCIlBr9ZVIxg']]
     ```
 
-4. Check the authentication status of `~nec` from `~zod` and confirm that the user ship has been authorized.
-
-    ```sh
-    curl --header "Content-Type: application/json" \
-         --request PUT \
-         --data '{"ship":"zod","action":"poke","app":"hermes","json":"{\"ship\":\"~nec\"}","mark":"noun"}' \
-         http://localhost:8080/~checkAuth
-    ```
-
-5. Check the authentication status of `~nec` from `~zod` and confirm that the user ship is once again not authorized.
+4. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship has been authorized.
 
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"zod","action":"poke","app":"hermes","json":"{\"ship\":\"~nec\"}","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
          http://localhost:8080/~checkAuth
     ```
 
-##  Issues
+5. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship is once again not authorized.
 
-- DMs on fakezods seem to be laggy which can make testing difficult.
+    ```sh
+    curl --header "Content-Type: application/json" \
+         --request PUT \
+         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
+         http://localhost:8080/~checkAuth
+    ```

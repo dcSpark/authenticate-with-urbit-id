@@ -7,7 +7,7 @@
 ::    to produce a token and wait for a DM containing the token from the
 ::    authenticating ship.
 ::
-/-  hermes, graph-store
+/-  graph-store
 /+  server, default-agent, dbug, graph-store
 |%
 +$  versioned-state
@@ -61,7 +61,6 @@
   |^
   =^  cards  state
     ?+    mark  (on-poke:default mark vase)
-        %hermes-action  (handle-action !<(action:hermes vase))
         %handle-http-request
       =+  !<([id=@ta =inbound-request:eyre] vase)
       ?:  =(url.request.inbound-request '/~initiateAuth')
@@ -119,35 +118,15 @@
         ::   secure.
         ::
         ~&  >  "%hermes request hit /~checkAuth"
-        =^  cards  state
-          :_  state
+        :_  state
+        ^-  (list card)
+        %+  weld
           %+  give-simple-payload:app:server  id
           %+  skip-authorization:main  inbound-request
           handle-auth-check:main
         (clear-auth:main inbound-request)
     ==
   [cards this]
-  ::
-  ++  handle-action
-    |=  =action:hermes
-    ^-  (quip card _state)
-    ~&  >>  action
-    ?-    -.action
-        %http-get
-      :_  state
-      :~  [%pass /[url.action] %arvo %i %request (get-url url.action) *outbound-config:iris]
-      ==
-      ::
-        %disconnect
-      ~&  >>>  "disconnecting at {<bind.action>}"
-      :_  state
-      [[%pass /bind %arvo %e %disconnect bind.action]]~
-      ::
-    ==
-  ++  get-url
-    |=  =url
-    ^-  request:http
-    [%'GET' url ~ ~]
   --
 ++  on-arvo
   |=  [=wire =sign-arvo]
@@ -246,10 +225,10 @@
 ++  on-fail   on-fail:default
 --
 |_  =bowl:gall
-++  default-insecure-token  8  ::  8 characters
-++  default-token          24  :: 24 characters
-++  default-secure-token   64  :: 64 characters
-++  max-token-length       86  :: 86 characters from standard entropy as @uwJ
+++  default-insecure-token     8  ::  8 characters
+++  default-token             24  :: 24 characters
+++  default-secure-token      64  :: 64 characters
+++  max-token-length          86  :: 86 characters from standard entropy as @uwJ
 ++  generate-token
   |=  len=@ud   :: length in characters
   ^-  tape
@@ -270,16 +249,17 @@
   ?~  payload  !!
   =/  payload-array  u:+.payload
   =/  st  u:+:(req-parser-ot payload-array)
-  =/  source  -.st
-  =/  target-payload  (de-json:html +.st)
-  =/  ship  (req-parser-ship +.target-payload)
-  ?~  ship  !!
-  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
+  =/  source-t  (trip -.st)
+  =/  source
+    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
+  =/  target-t  (trip +.st)
+  =/  target
+    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  token  (generate-token default-token)
   =.  tokens.state  (~(gas by tokens.state) ~[[target token]])
   =.  status.state  (~(gas by status.state) ~[[target %.n]])
-  ::~&  >>>  (crip "tokens {<tokens.state>}")
-  ::~&  >>>  (crip "status {<status.state>}")
   :_  state
   :~  [%give %fact ~[/tokens] [%atom !>(tokens.state)]]
       [%give %fact ~[/status] [%atom !>(status.state)]]
@@ -291,31 +271,38 @@
   ?~  payload  !!
   =/  payload-array  u:+.payload
   =/  st  u:+:(req-parser-ot payload-array)
-  =/  source  -.st
-  =/  target-payload  (de-json:html +.st)
-  =/  ship  (req-parser-ship +.target-payload)
-  ?~  ship  !!
-  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
+  =/  source-t  (trip -.st)
+  =/  source
+    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
+  =/  target-t  (trip +.st)
+  =/  target
+    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  token  (generate-token default-insecure-token)
   :_  state
   ~[[%pass /graph-store %agent [our.bowl %graph-store] %watch /updates]]
 ++  clear-auth
   |=  [req=inbound-request:eyre]
-  ^-  (quip card _state)
+  ::^-  (quip card _state)
+  ^-  (list card)
   =/  payload  (de-json:html `@t`+511:req)
   ?~  payload  !!
   =/  payload-array  u:+.payload
   =/  st  u:+:(req-parser-ot payload-array)
-  =/  source  -.st
-  =/  target-payload  (de-json:html +.st)
-  =/  ship  (req-parser-ship +.target-payload)
-  ?~  ship  !!
-  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
+  =/  source-t  (trip -.st)
+  =/  source
+    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
+  =/  target-t  (trip +.st)
+  =/  target
+    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  auth-status  (~(gut by status.state) target %.n)
   ::  only clear the tokens if the status is %.y, else it's too soon
   =.  tokens.state  ?:(auth-status (~(del by tokens.state) target) tokens.state)
   =.  status.state  ?:(auth-status (~(del by status.state) target) status.state)
-  :_  state
+  :::_  state
   :~  [%give %fact ~[/tokens] [%atom !>(tokens.state)]]
       [%give %fact ~[/status] [%atom !>(status.state)]]
   ==
@@ -336,17 +323,16 @@
   ?~  payload  !!
   =/  payload-array  u:+.payload
   =/  st  u:+:(req-parser-ot payload-array)
-  =/  source  -.st
-  =/  target-payload  (de-json:html +.st)
-  =/  ship  (req-parser-ship +.target-payload)
-  ?~  ship  !!
-  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
+  =/  source-t  (trip -.st)
+  =/  source
+    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
+  =/  target-t  (trip +.st)
+  =/  target
+    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  auth  (~(gut by status.state) target %.n)
   =/  token  (~(got by tokens.state) target)
-  ::~&  [%source [%s (scot %p our.bowl)]]
-  ::~&  [%target [%s (scot %p target)]]
-  ::~&  [%status [%s ?:(%.n 'true' 'false')]]
-  ::~&  [%token [%s (crip token)]]
   %-  json-response:gen:server
   %-  pairs
   :~
@@ -362,11 +348,14 @@
   ?~  payload  !!
   =/  payload-array  u:+.payload
   =/  st  u:+:(req-parser-ot payload-array)
-  =/  source  -.st
-  =/  target-payload  (de-json:html +.st)
-  =/  ship  (req-parser-ship +.target-payload)
-  ?~  ship  !!
-  =/  target  u:+:`(unit @p)`(slaw %p +.ship)
+  =/  source-t  (trip -.st)
+  =/  source
+    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
+  =/  target-t  (trip +.st)
+  =/  target
+    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
+    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  auth-status  (~(gut by status.state) target %.n)
   ~&  [%source [%s (scot %p our.bowl)]]
   ~&  [%target [%s (scot %p target)]]
@@ -387,3 +376,4 @@
   ~!  +:*handler
   (handler inbound-request)
 --
+
