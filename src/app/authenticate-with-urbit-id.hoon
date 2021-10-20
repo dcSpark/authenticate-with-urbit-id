@@ -1,5 +1,5 @@
   ::
-::::  hermes.hoon
+::::  authenticate-with-urbit-id.hoon
 ::
 ::      %gall agent to authenticate a ship for Urbit Visor.
 ::
@@ -37,11 +37,11 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  ~&  >  '%hermes initialized successfully'
+  ~&  >  '%authenticate-with-urbit-id initialized successfully'
   =.  state  [%0 *(map @p tape) *(map @p ?(%.y %.n))]
   :_  this
-  :~  [%pass /bind %arvo %e %connect [~ /'~initiateAuth'] %hermes]
-      [%pass /bind %arvo %e %connect [~ /'~checkAuth'] %hermes]
+  :~  [%pass /bind %arvo %e %connect [~ /'~initiateAuth'] %authenticate-with-urbit-id]
+      [%pass /bind %arvo %e %connect [~ /'~checkAuth'] %authenticate-with-urbit-id]
   ==
 ++  on-save
   ^-  vase
@@ -52,7 +52,7 @@
   =/  prev  !<(versioned-state old-state)
   ?-  -.prev
     %0
-    ~&  >  '%hermes version %0'
+    ~&  >  '%authenticate-with-urbit-id version %0'
     `this(state prev)
   ==
 ++  on-poke
@@ -90,7 +90,7 @@
         ::   store and if a DM comes from a registered @p and has the same auth
         ::   code as stored, then switch the "auth status" value to true.
         ::
-        ~&  >  "%hermes request hit /~initiateAuth"
+        ~&  >  "%authenticate-with-urbit-id request hit /~initiateAuth"
         =^  cards  state  (produce-token:main inbound-request)
         =^  cards  state  (subscribe-dms:main inbound-request)
         :_  state
@@ -117,7 +117,7 @@
         ::   authorization request to a website/service, making it more
         ::   secure.
         ::
-        ~&  >  "%hermes request hit /~checkAuth"
+        ~&  >  "%authenticate-with-urbit-id request hit /~checkAuth"
         :_  state
         ^-  (list card)
         %+  weld
@@ -195,7 +195,7 @@
       ::  Is this a DM?  If not, bail.
       =/  is-dm  =(+>->:payload %dm-inbox)
       ?.  is-dm
-        ~&  >>  "%hermes:  not a DM"
+        ~&  >>  "%authenticate-with-urbit-id:  not a DM"
         [- state]:(on-agent:default path sign)
       =/  payload-array  q:+.payload
       =/  payload-text  +>.payload-array
@@ -205,18 +205,18 @@
       ::  Has this token been requested?  If not, bail.
       =/  is-requested  %.y
       ?.  is-requested
-        ~&  >>  "%hermes:  ship not requested"
+        ~&  >>  "%authenticate-with-urbit-id:  ship not requested"
         [- state]:(on-agent:default path sign)
       ::  Check token of DM
-      ~&  >  "%hermes:  attempting to extract token from DM"
+      ~&  >  "%authenticate-with-urbit-id:  attempting to extract token from DM"
       =/  trial-token-payload  ->->+>+<-.payload-text
       ?>  ?=([%text @t] trial-token-payload)
       =/  trial-token  `@t`text:+.trial-token-payload
       ?.  =((crip (~(gut by tokens.state) author ~)) trial-token)
-        ~&  >>>  "%hermes:  incorrect token for {<author>}"
+        ~&  >>>  "%authenticate-with-urbit-id:  incorrect token for {<author>}"
         [~[[%give %fact ~[/status] [%atom !>(status.state)]]] state]
       =.  status.state  (~(gas by status.state) ~[[author %.y]])
-      ~&  >  "%hermes:  status for {<author>} confirmed"
+      ~&  >  "%authenticate-with-urbit-id:  status for {<author>} confirmed"
       :_  state
       ~[[%give %fact ~[/status] [%atom !>(status.state)]]]
     ==

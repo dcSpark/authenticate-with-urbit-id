@@ -1,0 +1,11 @@
+:~
+  title+'Authenticate with Urbit ID'
+  info+'A tool for authenticating Urbit ID ownership via HTTP.'
+  color+0xf.4c64
+  version+[0 1 0]
+  website+'https://dcspark.io'
+  license+'MIT'
+  base+'authenticate-with-urbit-id'
+  glob-ames+[~zod 0v1.5on92.uq82u.vut58.1mbd2.fm4ih]
+==
+

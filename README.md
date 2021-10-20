@@ -1,12 +1,12 @@
 # Authenticate With Urbit ID
 
-This is a Gall agent which enables third-party servers and service providers outside of Urbit to authenticate users, thereby providing a “Login with Urbit ID” experience to classical websites.  `%hermes` affords a website running a backend ship to authenticate that a website user does in fact control a particular Urbit ship.  The principle is similar to email token-based authentication.
+This is a Gall agent which enables third-party servers and service providers outside of Urbit to authenticate users, thereby providing a “Login with Urbit ID” experience to classical websites.  `%authenticate-with-urbit-id` affords a website running a backend ship to authenticate that a website user does in fact control a particular Urbit ship.  The principle is similar to email token-based authentication.
 
 When paired with Urbit Visor, this applications allows users to authenticate themselves on any classical web2 site by simply accepting permissions.
 
 ##  API
 
-`%hermes` exposes the following endpoints:
+`%authenticate-with-urbit-id` exposes the following endpoints:
 
 - `/~initiateAuth` (not secure)
   - Input:  An Airlock-standard JSON containing the user ship `ship` as a string.
@@ -16,7 +16,7 @@ When paired with Urbit Visor, this applications allows users to authenticate the
       ```sh
       curl --header "Content-Type: application/json" \
            --request PUT \
-           --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
+           --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
            http://localhost:8080/~initiateAuth
       ```
 
@@ -28,28 +28,28 @@ When paired with Urbit Visor, this applications allows users to authenticate the
       ```sh
       curl --header "Content-Type: application/json" \
            --request PUT \
-           --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
+           --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
            http://localhost:8080/~checkAuth
       ```
 
-In between the website hitting each endpoint, the user's ship should emit a DM containing the secure token to the website ship.  `%hermes` has subscribed to the `%dm-inbox` and will update the authorization status to `true` as soon as a DM containing the token has been received.
+In between the website hitting each endpoint, the user's ship should emit a DM containing the secure token to the website ship.  `%authenticate-with-urbit-id` has subscribed to the `%dm-inbox` and will update the authorization status to `true` as soon as a DM containing the token has been received.
 
 In the case of multiple initiations, earlier tokens are instantly invalidated.
 
-As soon as a successful check has been made, `%hermes` clears the authorization status of the user ship.
+As soon as a successful check has been made, `%authenticate-with-urbit-id` clears the authorization status of the user ship.
 
 
 ##  Example Workflow
 
 _This example assumes that the developer is a running a “website ship” `~sampel-talled` and a “user ship” `~sampel-palnet`.  (DMs do not work particularly well between fakezod galaxies.)_
 
-1. Start `%hermes` on website ship `~sampel-talled`.
+1. Start `%authenticate-with-urbit-id` on website ship `~sampel-talled`.
 2. Request a token from website ship `~sampel-talled` for user ship `~sampel-palnet`.
 
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet",""mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet",""mark":"noun"}' \
          http://localhost:8080/~initiateAuth
     ```
 
@@ -58,7 +58,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet",""mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet",""mark":"noun"}' \
          http://localhost:8080/~checkAuth
     ```
 
@@ -73,7 +73,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
          http://localhost:8080/~checkAuth
     ```
 
@@ -82,6 +82,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"hermes","json":"sampel-palnet","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
          http://localhost:8080/~checkAuth
     ```
+
