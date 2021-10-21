@@ -16,7 +16,7 @@ When paired with Urbit Visor, this applications allows users to authenticate the
       ```sh
       curl --header "Content-Type: application/json" \
            --request PUT \
-           --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
+           --data '{"ship":"sampel-talled","json":"sampel-palnet"}' \
            http://localhost:8080/~initiateAuth
       ```
 
@@ -28,7 +28,7 @@ When paired with Urbit Visor, this applications allows users to authenticate the
       ```sh
       curl --header "Content-Type: application/json" \
            --request PUT \
-           --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
+           --data '{"ship":"sampel-talled","json":"sampel-palnet"}' \
            http://localhost:8080/~checkAuth
       ```
 
@@ -49,7 +49,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet",""mark":"noun"}' \
+         --data '{"ship":"sampel-talled","json":"sampel-palnet"}' \
          http://localhost:8080/~initiateAuth
     ```
 
@@ -58,7 +58,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet",""mark":"noun"}' \
+         --data '{"ship":"sampel-talled","json":"sampel-palnet"}' \
          http://localhost:8080/~checkAuth
     ```
 
@@ -73,7 +73,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","json":"sampel-palnet"}' \
          http://localhost:8080/~checkAuth
     ```
 
@@ -82,7 +82,6 @@ _This example assumes that the developer is a running a “website ship” `~sam
     ```sh
     curl --header "Content-Type: application/json" \
          --request PUT \
-         --data '{"ship":"sampel-talled","action":"poke","app":"authenticate-with-urbit-id","json":"sampel-palnet","mark":"noun"}' \
+         --data '{"ship":"sampel-talled","json":"sampel-palnet"}' \
          http://localhost:8080/~checkAuth
     ```
-

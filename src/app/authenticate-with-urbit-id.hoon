@@ -63,6 +63,7 @@
     ?+    mark  (on-poke:default mark vase)
         %handle-http-request
       =+  !<([id=@ta =inbound-request:eyre] vase)
+      ::
       ?:  =(url.request.inbound-request '/~initiateAuth')
         ::
         :: Inputs:
@@ -91,14 +92,17 @@
         ::   code as stored, then switch the "auth status" value to true.
         ::
         ~&  >  "%authenticate-with-urbit-id request hit /~initiateAuth"
-        =^  cards  state  (produce-token:main inbound-request)
-        =^  cards  state  (subscribe-dms:main inbound-request)
+        =/  st  (get-source-target:main inbound-request)
+        =/  source  -.st
+        =/  target  +.st
+        =^  cards  state  (produce-token:main source target)
+        =^  cards  state  (subscribe-dms:main source target)
         :_  state
         ^-  (list card)
         %+  weld  cards
           %+  give-simple-payload:app:server  id
-          %+  skip-authorization:main  inbound-request
-          handle-auth-request:main
+          (handle-auth-request:main source target)
+      ::
       ?>  =(url.request.inbound-request '/~checkAuth')
         ::
         :: Inputs:
@@ -118,13 +122,16 @@
         ::   secure.
         ::
         ~&  >  "%authenticate-with-urbit-id request hit /~checkAuth"
+        =/  st  (get-source-target:main inbound-request)
+        =/  source  -.st
+        =/  target  +.st
+        =/  status  (~(gut by status.state) target %.n)
+        ~&  >  status
+        =^  cards  state  (clear-auth:main source target)
         :_  state
-        ^-  (list card)
-        %+  weld
+        %+  weld  cards
           %+  give-simple-payload:app:server  id
-          %+  skip-authorization:main  inbound-request
-          handle-auth-check:main
-        (clear-auth:main inbound-request)
+          (handle-auth-check:main source target status)
     ==
   [cards this]
   --
@@ -188,7 +195,7 @@
   ::
       %fact
     ?+    p.cage.sign  ~|([dap.bowl %bad-sub-mark wire p.cage.sign] !!)
-        %graph-update-2
+        ?(%graph-update-2 %graph-update-3)
       ^-  (quip card _state)
       =+  !<(=update:graph-store q.cage.sign)
       =/  payload=update:graph-store  !<(update:graph-store q.cage.sign)
@@ -243,20 +250,8 @@
     (oust [0 (dec (dec (sub (lent str) len)))] (oust [0 2] str))
   $(str (oust [(snag index dots) 1] str), index +(index), dot-index +(dot-index))
 ++  produce-token
-  |=  [req=inbound-request:eyre]
+  |=  [source=@p target=@p]
   ^-  (quip card _state)
-  =/  payload  (de-json:html `@t`+511:req)
-  ?~  payload  !!
-  =/  payload-array  u:+.payload
-  =/  st  u:+:(req-parser-ot payload-array)
-  =/  source-t  (trip -.st)
-  =/  source
-    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
-  =/  target-t  (trip +.st)
-  =/  target
-    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  token  (generate-token default-token)
   =.  tokens.state  (~(gas by tokens.state) ~[[target token]])
   =.  status.state  (~(gas by status.state) ~[[target %.n]])
@@ -264,9 +259,9 @@
   :~  [%give %fact ~[/tokens] [%atom !>(tokens.state)]]
       [%give %fact ~[/status] [%atom !>(status.state)]]
   ==
-++  subscribe-dms
+++  get-source-target
   |=  [req=inbound-request:eyre]
-  ^-  (quip card _state)
+  ^-  [@p @p]
   =/  payload  (de-json:html `@t`+511:req)
   ?~  payload  !!
   =/  payload-array  u:+.payload
@@ -279,30 +274,20 @@
   =/  target
     ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
     u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
-  =/  token  (generate-token default-insecure-token)
+  [source target]
+++  subscribe-dms
+  |=  [source=@p target=@p]
+  ^-  (quip card _state)
   :_  state
   ~[[%pass /graph-store %agent [our.bowl %graph-store] %watch /updates]]
 ++  clear-auth
-  |=  [req=inbound-request:eyre]
-  ::^-  (quip card _state)
-  ^-  (list card)
-  =/  payload  (de-json:html `@t`+511:req)
-  ?~  payload  !!
-  =/  payload-array  u:+.payload
-  =/  st  u:+:(req-parser-ot payload-array)
-  =/  source-t  (trip -.st)
-  =/  source
-    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
-  =/  target-t  (trip +.st)
-  =/  target
-    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
+  |=  [source=@p target=@p]
+  ^-  (quip card _state)
   =/  auth-status  (~(gut by status.state) target %.n)
   ::  only clear the tokens if the status is %.y, else it's too soon
   =.  tokens.state  ?:(auth-status (~(del by tokens.state) target) tokens.state)
   =.  status.state  ?:(auth-status (~(del by status.state) target) status.state)
-  :::_  state
+  :_  state
   :~  [%give %fact ~[/tokens] [%atom !>(tokens.state)]]
       [%give %fact ~[/status] [%atom !>(status.state)]]
   ==
@@ -316,21 +301,9 @@
   :~  [%ship so:dejs-soft:format]
   ==
 ++  handle-auth-request
-  |=  req=inbound-request:eyre
+  |=  [source=@p target=@p]
   ^-  simple-payload:http
   =,  enjs:format
-  =/  payload  (de-json:html `@t`+511:req)
-  ?~  payload  !!
-  =/  payload-array  u:+.payload
-  =/  st  u:+:(req-parser-ot payload-array)
-  =/  source-t  (trip -.st)
-  =/  source
-    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
-  =/  target-t  (trip +.st)
-  =/  target
-    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
   =/  auth  (~(gut by status.state) target %.n)
   =/  token  (~(got by tokens.state) target)
   %-  json-response:gen:server
@@ -341,31 +314,15 @@
     [%token [%s (crip token)]]
   ==
 ++  handle-auth-check
-  |=  req=inbound-request:eyre
+  |=  [source=@p target=@p status=?(%.y %.n)]
   ^-  simple-payload:http
   =,  enjs:format
-  =/  payload  (de-json:html `@t`+511:req)
-  ?~  payload  !!
-  =/  payload-array  u:+.payload
-  =/  st  u:+:(req-parser-ot payload-array)
-  =/  source-t  (trip -.st)
-  =/  source
-    ?:  =('~' (snag 0 source-t))  u:+:`(unit @p)`(slaw %p (crip source-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" source-t)))
-  =/  target-t  (trip +.st)
-  =/  target
-    ?:  =('~' (snag 0 target-t))  u:+:`(unit @p)`(slaw %p (crip target-t))
-    u:+:`(unit @p)`(slaw %p (crip (weld "~" target-t)))
-  =/  auth-status  (~(gut by status.state) target %.n)
-  ~&  [%source [%s (scot %p our.bowl)]]
-  ~&  [%target [%s (scot %p target)]]
-  ~&  [%status [%s ?:(auth-status 'true' 'false')]]
   %-  json-response:gen:server
   %-  pairs
   :~
     [%source [%s (scot %p our.bowl)]]
     [%target [%s (scot %p target)]]
-    [%status [%s ?:(auth-status 'true' 'false')]]
+    [%status [%s ?:(status 'true' 'false')]]
   ==
 ++  skip-authorization
   |=  $:  =inbound-request:eyre
@@ -376,4 +333,3 @@
   ~!  +:*handler
   (handler inbound-request)
 --
-
