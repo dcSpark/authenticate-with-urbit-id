@@ -4,6 +4,27 @@ This is a Gall agent which enables third-party servers and service providers out
 
 When paired with Urbit Visor, this applications allows users to authenticate themselves on any classical web2 site by simply accepting permissions.
 
+
+##  Installation
+
+### From Repo
+
+Copy the `/src` files into your pier at the appropriate point:
+
+```
+|merge %authenticate-with-urbit-id our %landscape, =gem %only-that
+|mount %authenticate-with-urbit-id  
+:: copy files into pier now
+|commit %authenticate-with-urbit-id  
+|install our %authenticate-with-urbit-id
+|rein %authenticate-with-urbit-id [& %authenticate-with-urbit-id]
+```
+
+### From Urbit Host
+
+Coming soon!
+
+
 ##  API
 
 `%authenticate-with-urbit-id` exposes the following endpoints:
