@@ -1,8 +1,10 @@
 # Authenticate With Urbit ID
 
-This is a Gall agent which enables third-party servers and service providers outside of Urbit to authenticate users, thereby providing a “Login with Urbit ID” experience to classical websites.  `%authenticate-with-urbit-id` affords a website running a backend ship to authenticate that a website user does in fact control a particular Urbit ship.  The principle is similar to email token-based authentication.
+A Gall agent which enables webservers and service providers outside of Urbit to authenticate users, thereby providing a “Login with Urbit ID” experience. `%authenticate-with-urbit-id` affords a website running a backend ship to authenticate that a website user does in fact control a particular Urbit ship (thereby supporting hosted ships, L2 ships, and other potential edge cases as well). The authentication protocol is similar to email token-based authentication schemes.
 
-When paired with Urbit Visor, this applications allows users to authenticate themselves on any classical web2 site by simply accepting permissions.
+When paired with Urbit Visor, this application will allows users to easily authenticate themselves on classical web2 sites which integrate Authenticate With Urbit ID. 
+
+Do note, the website/backend ship running `%authenticate-with-urbit-id` must be trusted (meaning run by the website provider, or a trusted 3rd party) and secured on a server with a strong firewall which only allows the website backend (ip) to interact with it. This was chosen to simplify the setup process and reuse the existing networking tech stack so that integration would be easier for implementors with little knowledge of Urbit.
 
 
 ##  Installation
@@ -20,16 +22,11 @@ Copy the `/src` files into your pier at the appropriate point:
 |rein %authenticate-with-urbit-id [& %authenticate-with-urbit-id]
 ```
 
-### From Urbit Host
-
-Coming soon!
-
-
 ##  API
 
 `%authenticate-with-urbit-id` exposes the following endpoints:
 
-- `/~initiateAuth` (not secure)
+- `/~initiateAuth`
   - Input:  An Airlock-standard JSON containing the user ship `ship` as a string.
   - Output:  An Airlock-standard JSON containing the website ship `source` as a string, the user ship `ship` as a string, and the token for the user as a string.
   - Example:
@@ -41,7 +38,7 @@ Coming soon!
            http://localhost:8080/~initiateAuth
       ```
 
-- `/~checkAuth` (not secure)
+- `/~checkAuth`
   - Input:  A JSON containing the user ship `ship` as a string.
   - Output:  A JSON containing the requesting website ship `source` as a string, the user ship `target` as a string, and the status of the user ship `status` as a string.
   - Example:
@@ -62,10 +59,10 @@ As soon as a successful check has been made, `%authenticate-with-urbit-id` clear
 
 ##  Example Workflow
 
-_This example assumes that the developer is a running a “website ship” `~sampel-talled` and a “user ship” `~sampel-palnet`.  (DMs do not work particularly well between fakezod galaxies.)_
+_This example assumes that the developer is a running a “website ship” `~sampel-talled` and a “user ship” `~sampel-palnet`.  (Do note: DMs do not work particularly well between fakezod galaxies.)_
 
 1. Start `%authenticate-with-urbit-id` on website ship `~sampel-talled`.
-2. Request a token from website ship `~sampel-talled` for user ship `~sampel-palnet`.
+2. Make a request to `%authenticate-with-urbit-id` on `~sampel-talled` to generate a token (typically done via the website backend) for user ship `~sampel-palnet` (this token is then returned to the end user from the backend to the frontend, and would be fed through Urbit Visor's API in a DM, as is specified in step 4).
 
     ```sh
     curl --header "Content-Type: application/json" \
@@ -74,7 +71,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
          http://localhost:8080/~initiateAuth
     ```
 
-3. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship is not authorized yet.
+3. Check the authentication status of `~sampel-palnet` and confirm that the user ship is not authorized yet.
 
     ```sh
     curl --header "Content-Type: application/json" \
@@ -83,13 +80,13 @@ _This example assumes that the developer is a running a “website ship” `~sam
          http://localhost:8080/~checkAuth
     ```
 
-3. Emit a DM from `~sampel-palnet` to `~sampel-talled` at the Dojo prompt.  (This should contain the token returned in the first step.)
+4. Send a DM from `~sampel-palnet` to `~sampel-talled` at which contains the token returned in the first step (this is the authentication step, which in our text workflow is send a dm via dojo, however typically would be done via Urbit Visor).
 
     ```sh
     :dm-hook|dm ~sampel-talled ~[[%text 'RENV~jjr1W-ICCIlBr9ZVIxg']]
     ```
 
-4. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship has been authorized.
+5. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship has been authorized.
 
     ```sh
     curl --header "Content-Type: application/json" \
@@ -98,7 +95,7 @@ _This example assumes that the developer is a running a “website ship” `~sam
          http://localhost:8080/~checkAuth
     ```
 
-5. Check the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship is once again not authorized.
+6. Reheck the authentication status of `~sampel-palnet` from `~sampel-talled` and confirm that the user ship is once again not authorized (`/~checkAuth` is a one-time consume check, meaning that users must reauthorize themselves every time they want to login.)
 
     ```sh
     curl --header "Content-Type: application/json" \
