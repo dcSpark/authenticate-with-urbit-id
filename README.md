@@ -15,7 +15,7 @@ Do note, the website/backend ship running `%authenticate-with-urbit-id` must be 
 
 ### From Repo (As Host)
 
-1. Boot the star or moon.
+1. Boot the host ship.
 2. On that ship, `|merge %authenticate-with-urbit-id our %base`.
 3. On that ship, `|mount %authenticate-with-urbit-id`.
 4. Outside the ship, `rm -rf ship/authenticate-with-urbit-id/*`.
