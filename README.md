@@ -11,16 +11,15 @@ Do note, the website/backend ship running `%authenticate-with-urbit-id` must be 
 
 ### From Repo
 
-Copy the `/src` files into your pier at the appropriate point:
-
-```
-|merge %authenticate-with-urbit-id our %landscape, =gem %only-that
-|mount %authenticate-with-urbit-id  
-:: copy files into pier now
-|commit %authenticate-with-urbit-id  
-|install our %authenticate-with-urbit-id
-|rein %authenticate-with-urbit-id [& %authenticate-with-urbit-id]
-```
+1. Boot the star or moon.
+2. On that ship, `|merge %authenticate-with-urbit-id our %base`.
+3. On that ship, `|mount %authenticate-with-urbit-id`.
+4. Outside the ship, `rm -rf ship/authenticate-with-urbit-id/*`.
+5. Outside the ship, `cp -r git-repo/src/* ship/authenticate-with-urbit-id`.
+6. Inside the ship, `|commit %authenticate-with-urbit-id`.
+7. Inside the ship, `|install our %authenticate-with-urbit-id`.  You should see a success message and a %no-docket-file-for warning.
+8. Inside the ship, `|public %authenticate-with-urbit-id` (note that this is different because there is no docket file or tile).
+9. From another ship, install at the command line:  `|install ~sampel-palnet %authenticate-with-urbit-id` (without a docket file, which we don't need, it currently won't show at the GUI).
 
 ##  API
 
