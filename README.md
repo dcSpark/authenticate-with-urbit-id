@@ -9,7 +9,11 @@ Do note, the website/backend ship running `%authenticate-with-urbit-id` must be 
 
 ##  Installation
 
-### From Repo
+### Via Ames (Preferred)
+
+1. On your ship, `|install ~havbex-sampel-palnet %authenticate-with-urbit-id`.
+
+### From Repo (As Host)
 
 1. Boot the star or moon.
 2. On that ship, `|merge %authenticate-with-urbit-id our %base`.
