@@ -9,28 +9,6 @@ Do note, the website/backend ship running `%authenticate-with-urbit-id` must be 
 
 ##  Installation
 
-### Via Ames (Preferred)
-
-1. On your ship, `|install ~havbex-sampel-palnet %authenticate-with-urbit-id`.
-
-Installation may take a while.  You are looking for this output:
-
-```
-> |install ~havbex-sampel-palnetnocfep %authenticate-with-urbit-id
->=
-kiln: activated install into %authenticate-with-urbit-id from [~havbex-sampel-palnet %authenticate-with-urbit-id]
-kiln: downloading update for %authenticate-with-urbit-id from [~havbex-sampel-palnet %authenticate-with-urbit-id]
-kiln: finished downloading update for %authenticate-with-urbit-id from [~havbex-sampel-palnet %authenticate-with-urbit-id]
-kiln: merging into %authenticate-with-urbit-id from [~havbex-sampel-palnet %authenticate-with-urbit-id]
-kiln: merge into %authenticate-with-urbit-id succeeded
-kiln: commit detected at %authenticate-with-urbit-id from [~havbex-sampel-palnet %authenticate-with-urbit-id]
-[%docket %no-docket-file-for %authenticate-with-urbit-id]
-gall: installing %authenticate-with-urbit-id
->   '%authenticate-with-urbit-id initialized successfully'
->>  "Eyre returned: [%bound accepted=%.y binding=[site=~ path=<|~initiateAuth|>]]"
->>  "Eyre returned: [%bound accepted=%.y binding=[site=~ path=<|~checkAuth|>]]"
-```
-
 ### From Repo (As Host)
 
 1. Boot the host ship.
