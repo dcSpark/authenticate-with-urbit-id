@@ -6,6 +6,8 @@ When paired with Urbit Visor, this application will allows users to easily authe
 
 Do note, the website/backend ship running `%authenticate-with-urbit-id` must be trusted (meaning run by the website provider, or a trusted 3rd party) and secured on a server with a strong firewall which only allows the website backend (ip) to interact with it. This was chosen to simplify the setup process and reuse the existing networking tech stack so that integration would be easier for implementors with little knowledge of Urbit.
 
+Check out [the announcement youtube video](https://www.youtube.com/watch?v=M0j7maBfRmA) for an easy-to-follow summary of Authenticate With Urbit ID.
+After the youtube video, [this deep-dive medium post](https://medium.com/dcspark/authenticate-website-users-using-urbit-id-e6dc8c4cb4fa) is recommended as well.
 
 ##  Installation
 
